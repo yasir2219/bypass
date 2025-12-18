@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  role         String   @default("ADMIN")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model User {
+  id         String   @id @default(cuid())
+  discordId  String   @unique
+  username   String
+  avatar     String?
+  role       String   @default("USER")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  uids       Uid[]
+}
+
+model License {
+  id         String   @id @default(cuid())
+  licenseKey String   @unique
+  expireDate DateTime?
+  maxUsage   Int?
+  usedCount  Int      @default(0)
+  status     String   @default("ACTIVE") // ACTIVE, EXPIRED, USED_UP
+  licenseType String   @default("STANDARD") // STANDARD, LIFETIME
+  maxUsers   Int?     // Maximum users allowed for lifetime licenses
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  uids       Uid[]
+}
+
+model Uid {
+  id         String   @id @default(cuid())
+  userId     String
+  gameUID    String   @unique
+  licenseKey String
+  expireDate DateTime? // Nullable for lifetime licenses
+  status     String   @default("ACTIVE") // ACTIVE, PAUSED, BANNED, EXPIRED
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id])
+  license    License  @relation(fields: [licenseKey], references: [licenseKey])
+}
+
+model Download {
+  id           String   @id @default(cuid())
+  fileName     String
+  description  String
+  version      String
+  fileSize     String
+  downloadLink String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Tutorial {
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  youtubeLink  String
+  thumbnail    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Settings {
+  id                String   @id @default(cuid())
+  discordServerLink String   @unique
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
